@@ -1,7 +1,13 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-
-
+from .models import Product,Purchase
+import pandas as pd
 # Create your views here.
 def index(request):
-    return HttpResponse("<h1>Hello welcome to django 3.2 with data science</h1>")
+    qs1=pd.DataFrame(Product.objects.all().values()).to_html
+    qs2=pd.DataFrame(Purchase.objects.all().values()).to_html
+    context={
+        'product':qs1,
+        'purchase':qs2,
+    }
+
+    return render(request,'products/index.html',context)

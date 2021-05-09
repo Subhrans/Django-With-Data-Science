@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}
+    {{block.super}}
+{% endblock %}
+{% block content %}
+<p>Hello Data Science</p>
+<br>
+{{product|safe }}
+<br>
+<hr>
+{{purchase|safe }}
+{% endblock %}
