@@ -1,15 +1,39 @@
 {% extends 'base.html' %}
 {% block title %}
-    {{block.super}}
+{{block.super}}
 {% endblock %}
 {% block content %}
 <p>Hello Data Science</p>
 <br>
+<p class="h4">Product</p>
 {{product|safe }}
 <br>
 <hr>
+<p class="h4">Purchase</p>
 {{purchase|safe }}
 <br>
 <hr>
+<p class="h4">Merge</p>
 {{merged|safe }}
+
+<div class="w-50 d-flex flex-row justify-content-center mt-5 p-3">
+    <form method="POST" action="{% url 'products:home' %}">
+      {% csrf_token %}
+        <div class="input-group mb-3 ">
+            <label class="pr-2">Choose chart type: </label>
+            {{data_form.choose_chart_type}}
+        </div>
+        <div class="input-group my-4">
+            <div class="input-group">
+                <label class="mr-3 my-2">Date from:</label>
+                {{data_form.date_from}}
+
+                <label class="mx-3 my-2">Date to:</label>
+                {{data_form.date_to}}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
 {% endblock %}
