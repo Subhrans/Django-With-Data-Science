@@ -1,8 +1,11 @@
 from django.shortcuts import render, HttpResponse
 from .models import Product, Purchase
+from django.http import StreamingHttpResponse
+from django.views.decorators.gzip import gzip_page
 import pandas as pd
 from .forms import DataForm
 import cv2 as cv
+import threading
 
 
 # Create your views here.
@@ -40,16 +43,50 @@ def index(request):
     return render(request, 'products/index.html', context)
 
 
+@gzip_page
 def live_video(request):
-    cap = cv.VideoCapture(0)
-    while True:
-        ret, frame = cap.read()
-        if ret is not True:
-            return HttpResponse("error")
-        # cv.imshow('frame',frame)
-        return render(request,'products/index.html',context={'image':frame})
+    # cap = cv.VideoCapture(0)
+    # while True:
+    #     ret, frame = cap.read()
+    #     if ret is not True:
+    #         return HttpResponse("error")
+    #     cv.imshow('frame',frame)
+    try:
+        cam = VideoCamera()
+        return StreamingHttpResponse(gen(cam), content_type="multipart/x-mixed-replace;")
+    except Exception as e:
+        print(e)
+    return render(request, 'products/index.html', context={'image': e})
 
-        if cv.waitKey(1)==ord('q'):
-            break
-    cap.release()
-    cv.destroyAllWindows()
+    #     if cv.waitKey(1)==ord('q'):
+    #         break
+    # cap.release()
+    # cv.destroyAllWindows()
+
+
+class VideoCamera:
+
+    def __init__(self):
+        self.video = cv.VideoCapture(0)
+        self.grabbed, self.frame = self.video.read()
+        threading.Thread(target=self.update, args=()).start()
+
+    def __del__(self):
+        self.video.release()
+
+    def get_frame(self):
+        self.image = self.frame
+        _, jpg = cv.imencode('.jpg', self.image)
+        return jpg.tobytes()
+
+    def update(self):
+        while True:
+            self.grabbed, self.frame = self.video.read()
+
+
+def gen(camera):
+    while True:
+        frame = camera.get_frame()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'
+               )
